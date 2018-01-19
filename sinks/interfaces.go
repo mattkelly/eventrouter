@@ -64,7 +64,7 @@ func ManufactureSink() (e EventSinkInterface) {
 			h := NewHTTPSink(url, overflow, bufferSize, headers)
 			go h.Run(make(chan bool))
 			e = h
-		case "containershiphttp":
+		case "containership_http":
 			csType := viper.GetString("containershipType")
 			if csType == "" {
 				panic("containership_http sink specified but no containershipType")
