@@ -2,7 +2,9 @@ package sinks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/golang/glog"
 
@@ -34,10 +36,19 @@ func newEventDataOfType(t string, evt EventData) EventDataOfType {
 
 // NewContainershipHTTPSink constructs a new ContainershipHTTPSink given a sink URL and buffer size
 func NewContainershipHTTPSink(sinkURL string, overflow bool, bufferSize int,
-	additionalHeaders map[string]string, csType string) *ContainershipHTTPSink {
+	headers map[string]string, csType string) *ContainershipHTTPSink {
+
+	// The Containership sink requires pulling in additional header info from a
+	// secret, so let's just add to the headers here
+	token := os.Getenv("CONTAINERSHIP_CLOUD_CLUSTER_API_KEY")
+	if token == "" {
+		glog.Warning("CONTAINERSHIP_CLOUD_CLUSTER_API_KEY not specified")
+	} else {
+		headers["Authorization"] = fmt.Sprintf("JWT %s", token)
+	}
 
 	h := &ContainershipHTTPSink{
-		HTTPSink: NewHTTPSink(sinkURL, overflow, bufferSize, additionalHeaders),
+		HTTPSink: NewHTTPSink(sinkURL, overflow, bufferSize, headers),
 		csType:   csType,
 	}
 
