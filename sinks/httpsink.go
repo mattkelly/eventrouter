@@ -53,12 +53,14 @@ type HTTPSink struct {
 	eventCh    channels.Channel
 	httpClient *pester.Client
 	bodyBuf    *bytes.Buffer
+	headers    map[string]string
 }
 
 // NewHTTPSink constructs a new HTTPSink given a sink URL and buffer size
-func NewHTTPSink(sinkURL string, overflow bool, bufferSize int) *HTTPSink {
+func NewHTTPSink(sinkURL string, overflow bool, bufferSize int, headers map[string]string) *HTTPSink {
 	h := &HTTPSink{
 		SinkURL: sinkURL,
+		headers: headers,
 	}
 
 	if overflow {
@@ -147,6 +149,11 @@ func (h *HTTPSink) drainEvents(events []EventData) {
 	if err != nil {
 		glog.Warningf(err.Error())
 		return
+	}
+
+	// Add optional http headers
+	for k, v := range h.headers {
+		req.Header.Set(k, v)
 	}
 
 	resp, err := h.httpClient.Do(req)
