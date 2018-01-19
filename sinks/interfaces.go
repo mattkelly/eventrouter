@@ -40,7 +40,7 @@ func ManufactureSink() (e EventSinkInterface) {
 		e = NewGlogSink()
 	case "stdout":
 		e = NewStdoutSink()
-	case "http":
+	case "http", "containership_http":
 		url := viper.GetString("httpSinkUrl")
 		if url == "" {
 			panic("http sync specified but no httpSinkUrl")
@@ -57,9 +57,22 @@ func ManufactureSink() (e EventSinkInterface) {
 		overflow := viper.GetBool("httpSinkDiscardMessages")
 		headers := viper.GetStringMapString("httpHeaders")
 
-		h := NewHTTPSink(url, overflow, bufferSize, headers)
-		go h.Run(make(chan bool))
-		return h
+		// Construct a new HTTP sink or Containership HTTP sink accordingly,
+		// kick it off, and return the interface in e
+		switch s {
+		case "http":
+			h := NewHTTPSink(url, overflow, bufferSize, headers)
+			go h.Run(make(chan bool))
+			e = h
+		case "containershiphttp":
+			csType := viper.GetString("containershipType")
+			if csType == "" {
+				panic("containership_http sink specified but no containershipType")
+			}
+			h := NewContainershipHTTPSink(url, overflow, bufferSize, headers, csType)
+			go h.Run(make(chan bool))
+			e = h
+		}
 	case "kafka":
 		viper.SetDefault("kafkaBrokers", []string{"kafka:9092"})
 		viper.SetDefault("kafkaTopic", "eventrouter")
