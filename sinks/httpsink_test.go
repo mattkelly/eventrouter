@@ -71,7 +71,7 @@ func TestUpdateEvents(t *testing.T) {
 	evt := makeFakeEvent(podRef, v1.EventTypeWarning, "CreateInCluster", "Fake pod creation event")
 
 	// 1. Try with a synchronous channel
-	sink := NewHTTPSink(srv.URL, false, 0)
+	sink := NewHTTPSink(srv.URL, false, 0, nil)
 	go func() {
 		sink.Run(stopCh)
 		doneCh <- true
@@ -89,7 +89,7 @@ func TestUpdateEvents(t *testing.T) {
 	// 2. Try with the server returning 500's, test retries
 	got.Truncate(0)
 	seenRequests = make([]*http.Request, 0)
-	sink = NewHTTPSink(srv.URL, false, 10)
+	sink = NewHTTPSink(srv.URL, false, 10, nil)
 
 	go func() {
 		sink.Run(stopCh)
@@ -122,7 +122,7 @@ func TestUpdateEvents(t *testing.T) {
 	numExpected := 10
 	got.Truncate(0)
 	seenRequests = make([]*http.Request, 0)
-	sink = NewHTTPSink(srv.URL, true, numExpected)
+	sink = NewHTTPSink(srv.URL, true, numExpected, nil)
 
 	for i := 0; i < 1000; i++ {
 		evt.Message = "msg " + strconv.Itoa(i)

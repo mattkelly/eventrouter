@@ -50,11 +50,14 @@ func ManufactureSink() (e EventSinkInterface) {
 		// 1500 have come in without getting consumed
 		viper.SetDefault("httpSinkBufferSize", 1500)
 		viper.SetDefault("httpSinkDiscardMessages", true)
+		// Users can optionally specify HTTP headers to be included in every request
+		viper.SetDefault("httpHeaders", nil)
 
 		bufferSize := viper.GetInt("httpSinkBufferSize")
 		overflow := viper.GetBool("httpSinkDiscardMessages")
+		headers := viper.GetStringMapString("httpHeaders")
 
-		h := NewHTTPSink(url, overflow, bufferSize)
+		h := NewHTTPSink(url, overflow, bufferSize, headers)
 		go h.Run(make(chan bool))
 		return h
 	case "kafka":
